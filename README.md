@@ -156,3 +156,125 @@ Todos los empleados tienen un método llamado `calcularSueldo()`.
 * Podés recorrer esa lista con un bucle y calcular el sueldo de cada uno.
 
 * Gracias al despacho dinámico (polimorfismo), el sistema no se queda con la regla general de la clase padre `Empleado`, sino que va a buscar la implementación específica del objeto real que está en la memoria.
+
+## Colecciones: `List` y `ArrayList`
+Las colecciones permiten administrar varios objetos como una unidad.
+
+### `List<T>` (La interfaz):
+* Define la idea **general** de una lista y las operaciones que tiene una lista ordenada (`add`, `get`, `remove`, `size`, etc.).
+* No se puede instanciar por sí misma, ya que una interfaz define el contrato pero no representa la construcción concreta.
+
+### `ArrayList<T>` (La clase):
+* Implementa `List` usando un array redimensionable que puede ampliar su capacidad cuando necesita más espacio.
+* Puede instanciarse con `new ArrayList<>()`, lo que dá una forma concreta de construir y administrar unna lista.
+* Es ordenada, permite elementos repetidos y el accedo por índice.
+
+```java
+List<Empleado> nomina = new ArrayList<>();
+```
+
+### Referencia
+Con `nomina.add(new EmpleadoPlanta(...))`, por ejemplo, el `ArrayList` no guarda el objeto completo. Lo que hace es guardar una referencia (dirección de memoria) que apunta al lugar de la memoria RAM en el que se encuentra ese objeto.
+
+Los objetos existen de manera independiente, por lo que una misma lista puede apuntar a instancias de distintas clases hija de Empleado.
+
+```java
+List<Empleado> nomina = new ArrayList<>();
+
+nomina.add(new EmpleadoPlanta("E01", "Pepa Pig", 950000));
+nomina.add(new Pasante("E02", "Pepe Argento", 80, 4500));
+
+for (Empleado empleado : nomina) {
+    empleado.mostrarDatos();
+    System.out.println(empleado.calcularSueldo());
+}
+```
+
+La lista se declara con el tipo general (`Empleado`). Cada posición puede referenciar una clase hija diferente y el recorrido utiliza el mismo mensaje para todas:
+
+* La lista toma cualquier objeto que sea un `Empleado`.
+
+* La variable del `for` conserva el tipo general.
+
+* Todos reciben el mismo mensaje (ej. calcularSueldo()).
+
+* Cada objeto ejecuta su propia fórmula.
+
+## Interfaces
+Es un contrato que define qué operaciones tiene que realizar un componente, pero no dice cómo las hace. Es decir, no puede ser implementada por sí misma, sino que otras clases la heredan y la implementan. Se declara usando la palabra clave `interface`.
+
+* No se puede instanciar.
+* Sus métodos son **abstractos**.
+* Una clase puede implementar varias interfaces.
+* Las interfaces pueden implementar otras interfaces.
+
+```java
+public interface VehiculoServicio {
+
+    boolean agregarVehiculo(Vehiculo vehiculo);
+
+    Vehiculo buscarPorPatente(String patente);
+
+    boolean eliminarPorPatente(String patente);
+
+    void listarVehiculos();
+}
+```
+
+Una clase se compromete a cumplir ese contrato con la palabra clave `implements`  y escribiendo el código de cada método con el `@Override`
+
+```java
+import java.util.ArrayList;
+import java.util.List;
+
+public class VehiculoServicioMemoria implements VehiculoServicio {
+
+    private List<Vehiculo> vehiculos;
+
+    public VehiculoServicioMemoria() {
+        vehiculos = new ArrayList<Vehiculo>();
+    }
+
+    @Override
+    public boolean agregarVehiculo(Vehiculo vehiculo) {
+
+        return vehiculos.add(vehiculo);
+    }
+
+    @Override
+    public Vehiculo buscarPorPatente(String patente) {
+
+        for (Vehiculo vehiculo : vehiculos) {
+
+            if (vehiculo.getPatente().equalsIgnoreCase(patente)) {
+
+                return vehiculo;
+            }
+        }
+
+        return null;
+    }
+
+    @Override
+    public boolean eliminarPorPatente(String patente) {
+
+        Vehiculo encontrado = buscarPorPatente(patente);
+
+        if (encontrado == null) {
+            return false;
+        }
+
+        return vehiculos.remove(encontrado);
+    }
+
+    @Override
+    public void listarVehiculos() {
+
+        for (Vehiculo vehiculo : vehiculos) {
+            System.out.println(vehiculo.mostrarInformacion());
+        }
+    }
+}
+```
+
+De esta forma el resto del programa sólo conoce el contrato (`VehiculoServicio`). Si un día querés cambiar a una versión con Base de Datos o que trabaje con un archivo, sólo hay que cambiar la línea donde se instancia, y el resto del programa sigue funcionando exactamente igual.
